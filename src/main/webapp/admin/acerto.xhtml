@@ -1,0 +1,572 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/template/template.xhtml">
+
+	<ui:define name="head">
+		<h:outputScript name="layout.js" library="js"/>
+	</ui:define>
+
+    <ui:define name="content">
+
+		<h:form>
+
+			<div class="crud-demo">
+				<p:toolbar rendered="#{userSession.usuario.isAdmin()}" styleClass="my-3">
+
+					<p:toolbarGroup>
+
+						<h:panelGroup id="manage-novo-acerto-content" styleClass="flex flex-row fadein animation-duration-300 gap-2 m-2 w-full">
+
+							<h:panelGroup id="data-fields" styleClass="flex flex-row gap-2">
+
+								<h:panelGroup styleClass="flex flex-row gap-2 align-items-end justify-content-center ui-fluid">
+
+									<div class="flex flex-column flex-grow-1">
+										<p:outputLabel for="@next" value="Tipo de Colaborador" />
+										<p:selectOneMenu id="tipoColaborador"
+														value="#{acertoView.tipoColaboradorSelecionado}" required="true"
+														hideNoSelectionOption="#{acertoView.tipoColaboradorSelecionado ne null}">
+											<f:selectItem itemLabel="Selecione" itemValue="#{null}" noSelectionOption="true"/>
+											<f:selectItems value="#{acertoView.tipoColaborador}" />
+											<p:ajax update="@this @root:@id(data-fields) @root:@id(data-infos)" process="@this" listener="#{acertoView.buscarColaboradores}"/>
+										</p:selectOneMenu>
+									</div>
+
+								</h:panelGroup>
+
+								<h:panelGroup rendered="#{acertoView.tipoColaboradorSelecionado eq 'FIXO'}" styleClass="flex flex-row gap-2">
+
+									<h:panelGroup styleClass="flex flex-row gap-2 justify-content-center align-items-end ui-fluid" id="fixo-step-1">
+
+										<div class="flex flex-column flex-grow-1">
+											<p:outputLabel for="@next" value="Colaborador"/>
+											<p:autoComplete disabled="#{empty acertoView.colaboradores}" value="#{acertoView.colaboradorSelecionado}"
+												required="true" completeMethod="#{acertoView.completeColaborador}" dropdown="true"
+												var="colaborador" itemLabel="#{colaborador.nome}" itemValue="#{colaborador}"
+												converter="#{colaboradorConverter}" forceSelection="true" scrollHeight="250">
+												<p:ajax update="@root:@id(fixo-step-2) @this" process="@root:@id(fixo-step-1)"/>
+											</p:autoComplete>
+										</div>
+
+										<div class="flex flex-column flex-grow-1">
+											<p:outputLabel for="@next" value="Salário:"/>
+											<p:inputText disabled="#{empty acertoView.colaboradores}" required="true" class="moneyInput"
+												value="#{acertoView.salario}"
+												styleClass="w-full" size="12"
+												oninput="formatMoneyInput(this)" converter="dinheiroConverter">
+												<p:ajax update="@root:@id(fixo-step-2) @this" process="@root:@id(fixo-step-1)"/>
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</p:inputText>
+										</div>
+
+									</h:panelGroup>
+
+									<h:panelGroup styleClass="flex flex-row gap-2 align-items-end justify-content-center ui-fluid" id="fixo-step-2">
+
+										<div class="flex flex-column flex-grow-1">
+											<p:outputLabel value="Data Inicio:" for="dtInicioNovo" />
+											<p:datePicker disabled="#{acertoView.colaboradorSelecionado eq null and empty acertoView.salario}" id="dtInicioNovo" value="#{acertoView.dataInicio}" required="true" showIcon="true" showOnFocus="disable"/>
+										</div>
+
+										<div class="flex flex-column flex-grow-1">
+											<p:outputLabel value="Data Fim:" for="dtFimNovo" />
+											<p:datePicker disabled="#{acertoView.colaboradorSelecionado eq null and empty acertoView.salario}" id="dtFimNovo" value="#{acertoView.dataFim}"	required="true" showIcon="true" showOnFocus="disable"/>
+										</div>
+
+										<div class="flex flex-column">
+											<p:commandButton disabled="#{acertoView.colaboradorSelecionado eq null and empty acertoView.salario}" styleClass="w-15rem" value="Calcular Total" actionListener="#{acertoView.realizarAcertoFixo}"
+												update="@root:@id(fixo-info) @root:@id(recibo-limpar)" icon="pi pi-dollar" process="@this @root:@id(fixo-step-2)"/>
+										</div>
+
+									</h:panelGroup>
+
+								</h:panelGroup>
+
+								<h:panelGroup rendered="#{acertoView.tipoColaboradorSelecionado eq 'ENTREGADOR'}" styleClass="flex flex-row gap-2">
+
+									<h:panelGroup styleClass="flex flex-row gap-2 align-items-end justify-content-center ui-fluid" id="entregador-step-1">
+
+										<div class="flex flex-column flex-grow-1">
+											<p:outputLabel value="Data Inicio:" for="@next"/>
+											<p:datePicker value="#{acertoView.dataInicio}" required="true" showIcon="true" showOnFocus="disable"/>
+										</div>
+
+										<div class="flex flex-column flex-grow-1">
+											<p:outputLabel value="Data Fim:" for="@next"/>
+											<p:datePicker value="#{acertoView.dataFim}"	required="true" showIcon="true" showOnFocus="disable"/>
+										</div>
+
+										<div class="flex flex-column flex-grow-1">
+											<p:commandButton styleClass="w-15rem" value="Buscar Entregadores" actionListener="#{acertoView.buscarEntregadoresAcerto}"
+												update="@root:@id(entregador-step-2)" icon="pi pi-search" process="@this @root:@id(entregador-step-1)"/>
+										</div>
+
+									</h:panelGroup>
+
+									<h:panelGroup styleClass="flex flex-row gap-2 justify-content-center align-items-end ui-fluid" id="entregador-step-2">
+
+										<div class="flex flex-column flex-grow-1">
+
+											<p:outputLabel for="@next" value="Entregador" />
+											<p:selectOneMenu disabled="#{empty acertoView.entregadores}" required="true"
+												value="#{acertoView.entregadorSelecionado}" converter="#{entregadorConverter}" styleClass="w-12rem">
+												<f:selectItem itemLabel="Selecione" itemValue="" noSelectionOption="true"/>
+												<f:selectItems value="#{acertoView.entregadores}" var="entregador" itemLabel="#{entregador.nome}" itemValue="#{entregador}" />
+											</p:selectOneMenu>
+
+										</div>
+
+										<div class="flex flex-column">
+											<p:commandButton styleClass="w-9rem" value="Valor Diária" icon="pi pi-dollar" process="@this" oncomplete="PF('diariaDialog').show()"/>
+										</div>
+
+										<div class="flex flex-column">
+											<p:commandButton disabled="#{empty acertoView.entregadores}" styleClass="w-15rem" value="Calcular Total" actionListener="#{acertoView.realizarAcertoEntregador}"
+												update="@root:@id(entregador-info) @root:@id(recibo-limpar)" icon="pi pi-dollar" process="@this @root:@id(entregador-step-2)"/>
+										</div>
+
+									</h:panelGroup>
+
+								</h:panelGroup>
+
+								<h:panelGroup id="recibo-limpar" styleClass="flex flex-row flex-nowrap gap-2">
+
+									<h:panelGroup styleClass="flex flex-row gap-2 align-items-end justify-content-center ui-fluid">
+
+										<div class="flex flex-column flex-grow-1">
+											<p:commandButton disabled="#{empty acertoView.textoVale}" value="Copiar Recibo" icon="pi pi-copy" process="@this" actionListener="#{acertoView.copyValeToClipboard}" styleClass="w-11rem"/>
+										</div>
+
+										<div class="flex flex-column flex-grow-1">
+											<p:commandButton value="Limpar" process="@this" actionListener="#{acertoView.cancelar}"
+													icon="pi pi-eraser" styleClass="ui-button-secondary" update="@root:@id(manage-novo-acerto-content) @root:@id(recibo-limpar) @root:@id(data-infos)"/>
+										</div>
+									</h:panelGroup>
+
+								</h:panelGroup>
+
+							</h:panelGroup>
+
+							<!-- <p:graphicImage id="qrcodezap" value="/resources/qrcodes/qrcode.png" width="125" height="125" styleClass="m-5" /> -->
+
+						</h:panelGroup>
+
+					</p:toolbarGroup>
+
+				</p:toolbar>
+
+				<h:panelGroup id="data-infos">
+
+					<h:panelGroup rendered="#{acertoView.tipoColaboradorSelecionado eq 'FIXO'}" id="fixo-info" styleClass="flex flex-column gap-3">
+
+						<h:panelGroup class="flex flex-row justify-content-center p-3 border-300 border-1 border-round min-w-max" id="fixo-info-pagamento">
+
+							<h:panelGroup rendered="#{empty acertoView.colaboradorSelecionado.valorTotalComDesconto}" styleClass="flex flex-column mx-6 gap-2 justify-content-center">
+								<p:skeleton width="12rem" class="mb-2"/>
+								<p:skeleton width="8rem" class="mb-2"/>
+								<p:skeleton width="7rem" class="mb-2"/>
+								<p:skeleton width="12rem" class="mt-5"/>
+							</h:panelGroup>
+
+							<h:panelGroup rendered="#{not empty acertoView.colaboradorSelecionado.valorTotalComDesconto}" styleClass="flex flex-column mx-6 gap-2 justify-content-center">
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Colaborador:" />
+									<h:outputText value="#{acertoView.colaboradorSelecionado.nome}" />
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Qtde de Vales:" />
+									<h:outputText value="#{acertoView.colaboradorSelecionado.qtdVales}" />
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Total de Vales:" />
+									<h:outputText styleClass="text-red-500" value="#{acertoView.colaboradorSelecionado.valorTotalVales}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between mt-5">
+									<h:outputText styleClass="font-semibold" value="Total Receber:" />
+									<h:outputText styleClass="#{acertoView.colaboradorSelecionado.valorTotalComDesconto lt 0 ? 'text-red-500':''}" value="#{acertoView.colaboradorSelecionado.valorTotalComDesconto}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+							</h:panelGroup>
+
+							<p:divider layout="vertical"/>
+
+							<p:skeleton rendered="#{empty acertoView.colaboradorSelecionado.valorTotalComDesconto}" width="10rem" height="10rem" styleClass="mx-6"/>
+							<p:barcode rendered="#{not empty acertoView.colaboradorSelecionado.valorTotalComDesconto}" styleClass="mx-6" type="qr" value="#{acertoView.colaboradorSelecionado.gerarPayloadPix()}" width="125" height="125"/>
+
+						</h:panelGroup>
+
+						<p:dataTable id="fixo-info-vales" var="vale" value="#{acertoView.valesDinheiro}" style="font-size:12px; min-width: 400;">
+
+							<p:column headerText="Data do Vale">
+								<h:outputText value="#{vale.dataFormatada}" />
+							</p:column>
+
+							<p:column headerText="Tipo">
+								<h:outputText value="#{vale.tipo}" />
+							</p:column>
+
+							<p:column headerText="Valor">
+								<h:outputText value="#{vale.valor}">
+									<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+								</h:outputText>
+							</p:column>
+
+							<p:columnGroup type="footer">
+
+								<p:row>
+									<p:column colspan="2" style="text-align:right" footerText="Total:" />
+
+									<p:column  style="color: red">
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.colaboradorSelecionado.valorTotalVales}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+								</p:row>
+
+							</p:columnGroup>
+
+						</p:dataTable>
+
+					</h:panelGroup>
+
+					<h:panelGroup rendered="#{acertoView.tipoColaboradorSelecionado eq 'ENTREGADOR'}" id="entregador-info" styleClass="flex flex-column gap-3">
+
+						<h:panelGroup class="flex flex-row justify-content-center align-content-center align-items-center p-3 border-300 border-1 border-round min-w-max" id="entregador-info-pagamento">
+
+							<h:panelGroup rendered="#{empty acertoView.entregadorSelecionado.valorTotalComDesconto}" styleClass="flex flex-column mx-6 gap-2 justify-content-center">
+								<p:skeleton width="12rem" class="mb-2"/>
+								<p:skeleton width="8rem" class="mb-2"/>
+								<p:skeleton width="7rem" class="mb-2"/>
+								<p:skeleton width="12rem" class="mt-5"/>
+							</h:panelGroup>
+
+							<h:panelGroup rendered="#{not empty acertoView.entregadorSelecionado.valorTotalComDesconto}" styleClass="flex flex-column mx-6 gap-2 justify-content-center">
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Colaborador:" />
+									<h:outputText value="#{acertoView.entregadorSelecionado.nome}" />
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Qtde de Diárias:" />
+									<h:outputText value="#{acertoView.entregadorSelecionado.qtdTotalDias}" />
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Total de entregas:" />
+									<h:outputText value="#{acertoView.entregadorSelecionado.qtdEntregas}" />
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Entregas:"/>
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalEntregas}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Diárias:"/>
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalDiarias}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Ifood:"/>
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalIfood}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="S/ Desconto:"/>
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalSemDesconto}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Vales:"/>
+									<h:outputText styleClass="text-red-500" value="#{acertoView.entregadorSelecionado.valorTotalVales}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="Saldo:"/>
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorSaldo}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between">
+									<h:outputText styleClass="font-semibold" value="C/ Desconto:"/>
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalComDesconto}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+								<div class="flex flex-row gap-3 justify-content-between mt-5">
+									<h:outputText styleClass="font-semibold" value="Total Receber:" />
+									<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalComDesconto}">
+										<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+									</h:outputText>
+								</div>
+
+							</h:panelGroup>
+
+							<p:divider layout="vertical"/>
+
+							<p:skeleton rendered="#{empty acertoView.entregadorSelecionado.valorTotalComDesconto}" width="10rem" height="10rem" styleClass="mx-6"/>
+							<p:barcode rendered="#{not empty acertoView.entregadorSelecionado.valorTotalComDesconto}" styleClass="mx-6" type="qr" value="#{acertoView.entregadorSelecionado.gerarPayloadPix()}" width="125" height="125"/>
+
+						</h:panelGroup>
+
+						<p:dataTable id="entregador-info-acertos" var="acerto" value="#{acertoView.acertos}" style="font-size:12px; min-width: 400;">
+
+							<p:column headerText="Data da Entrega">
+								<p:outputLabel value="#{acerto.dataFormatada}" />
+							</p:column>
+
+							<p:column headerText="Qtde Entregas">
+								<p:outputLabel value="#{acerto.qtdeEntregasDia}" />
+							</p:column>
+
+							<p:column headerText="Valor Diária">
+								<h:outputText value="#{acerto.valorDiaria}">
+									<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="Qtde de IFood">
+								<p:outputLabel value="#{acerto.qtdeIFood}" />
+							</p:column>
+
+							<p:column>
+								<p:outputLabel value="" />
+							</p:column>
+							<p:column headerText="Valor Vale">
+								<h:outputText value="#{acerto.valorValeDia}">
+									<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+								</h:outputText>
+							</p:column>
+
+							<p:columnGroup type="footer">
+
+								<p:row>
+
+									<p:column colspan="1" style="text-align:right"
+										footerText="Totais:" />
+
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalEntregas}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalDiarias}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalIfood}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalSemDesconto}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+
+									<p:column style="color:red">
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalVales}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+
+								</p:row>
+
+								<p:row>
+
+									<p:column colspan="5" style="text-align:right" footerText="Saldo:" />
+
+									<p:column style="color: red">
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorSaldo}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+
+								</p:row>
+
+								<p:row>
+
+									<p:column colspan="5" style="text-align:right"
+										footerText="Receber:" />
+
+									<p:column style="color: green">
+
+										<f:facet name="footer">
+											<h:outputText value="#{acertoView.entregadorSelecionado.valorTotalComDesconto}">
+												<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+											</h:outputText>
+										</f:facet>
+
+									</p:column>
+
+								</p:row>
+
+							</p:columnGroup>
+
+						</p:dataTable>
+
+					</h:panelGroup>
+
+				</h:panelGroup>
+			</div>
+
+		</h:form>
+
+		<h:form>
+
+            <p:dialog header="Diária Entregador" widgetVar="diariaDialog" showEffect="fade" modal="true" blockScroll="false" id="diariaDialog"
+                closable="false" closeOnEscape="false" fitViewport="true" resizable="false" responsive="true">
+
+                <p:outputPanel id="manage-diaria-content" styleClass="ui-fluid flex flex-row gap-2" style="width: 40vw;">
+
+					<div class="flex flex-column gap-3 mt-3 w-10">
+						<ui:repeat value="#{acertoView.valorDiaria.entrySet()}" var="entry">
+							<p:selectBooleanCheckbox value="#{acertoView.valorDiaria[entry.key]}" itemLabel="#{acertoView.diaFormatado(entry.key)}"/>
+						</ui:repeat>
+					</div>
+
+					<div class="flex flex-column gap-3 mt-3 w-12">
+
+						<p:commandButton value="Nova Taxa" icon="pi pi-plus" actionListener="#{acertoView.adicionarTaxa}"
+                                        update="@root:@id(manage-diaria-content) @root:@id(manage-taxa-content)" oncomplete="PF('taxaDialog').show()"
+                                        process="@this" styleClass="ui-button-success" style="margin-right: .5rem">
+                                <p:resetInput target="@root:@id(manage-diaria-content)" />
+                        </p:commandButton>
+
+						<p:dataTable id="dt-taxas" widgetVar="dtTaxas" var="taxa" value="#{acertoView.taxas}"
+								reflow="true" styleClass="products-table mt-3" rows="10"
+								paginator="true" paginatorPosition="bottom" stripedRows="true">
+
+							<p:column headerText="Quantidade Entregas">
+								<h:outputText value="#{taxa.qtdEntregasPersonalizado}" />
+							</p:column>
+
+							<p:column headerText="Valor">
+								<h:outputText value="#{taxa.valorPersonalizado}" />
+							</p:column>
+
+							<p:column exportable="false">
+
+								<p:commandButton icon="pi pi-pencil" update="@root:@id(manage-taxa-content)"
+													oncomplete="PF('taxaDialog').show()"
+													styleClass="edit-button rounded-button ui-button-warning" process="@this">
+									<f:setPropertyActionListener value="#{taxa}" target="#{acertoView.taxaSelecionada}" />
+									<p:resetInput target="@root:@id(manage-taxa-content)" />
+								</p:commandButton>
+
+								<p:commandButton class="ui-button-danger rounded-button" icon="pi pi-trash"
+													process="@this"
+													oncomplete="PF('deletarTaxaDialog').show()">
+									<f:setPropertyActionListener value="#{taxa}" target="#{acertoView.taxaSelecionada}" />
+								</p:commandButton>
+
+							</p:column>
+
+						</p:dataTable>
+					</div>
+
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Salvar" icon="pi pi-check" actionListener="#{acertoView.salvarDiaria}"
+                                    update="manage-diaria-content" process="@this manage-diaria-content @this" oncomplete="PF('diariaDialog').hide()"/>
+
+                    <p:commandButton value="Cancelar" icon="pi pi-times" onclick="PF('diariaDialog').hide()"
+                        class="ui-button-secondary" actionListener="#{acertoView.cancelarDiaria}" process="@this"/>
+                </f:facet>
+
+            </p:dialog>
+
+			<p:dialog header="Taxa Personalizada" widgetVar="taxaDialog" showEffect="fade" modal="true" blockScroll="false" id="taxaDialog"
+                closable="false" closeOnEscape="false" fitViewport="true" resizable="false" responsive="true">
+
+                <p:outputPanel id="manage-taxa-content" styleClass="ui-fluid">
+
+                    <p:outputPanel rendered="#{not empty acertoView.taxaSelecionada}">
+
+                        <h:panelGrid columns="2">
+							<p:outputLabel for="@next" value="Quantidade de Entregas"/>
+                			<p:inputNumber value="#{acertoView.taxaSelecionada.qtdEntregasPersonalizado}" minValue="1" decimalPlaces="0" />
+
+                            <p:outputLabel for="@next" value="Valor"/>
+                            <p:inputText required="true" class="moneyInput"
+                                value="#{acertoView.taxaSelecionada.valorPersonalizado}"
+                                styleClass="mt-1 w-full" size="12"
+                                oninput="formatMoneyInput(this)" converter="dinheiroConverter">
+                                <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+                            </p:inputText>
+
+                        </h:panelGrid>
+
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Salvar" icon="pi pi-check" actionListener="#{acertoView.salvarTaxa}"
+                                    update="manage-diaria-content @root:@id(dt-taxas)" process="manage-taxa-content @this"/>
+
+                    <p:commandButton value="Cancelar" icon="pi pi-times" onclick="PF('taxaDialog').hide()"
+                        class="ui-button-secondary" actionListener="#{acertoView.cancelarTaxa}" process="@this"/>
+                </f:facet>
+
+            </p:dialog>
+
+            <p:confirmDialog widgetVar="deletarTaxaDialog" showEffect="fade" width="300"
+                                message="Remover a taxa?" header="Confirmar" severity="warn" closable="false" closeOnEscape="false">
+                <p:commandButton value="Sim" icon="pi pi-check" actionListener="#{acertoView.deletarTaxaSelecionada}"
+                                    process="@this" oncomplete="PF('deletarTaxaDialog').hide()" />
+                <p:commandButton value="Não" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                                    onclick="PF('deletarTaxaDialog').hide()" />
+            </p:confirmDialog>
+
+        </h:form>
+
+		<script src="#{request.contextPath}/resources/js/util.js"></script>
+
+	</ui:define>
+
+</ui:composition>

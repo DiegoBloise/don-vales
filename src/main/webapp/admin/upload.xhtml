@@ -1,0 +1,106 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/template/template.xhtml">
+
+	<ui:define name="head">
+		<h:outputScript name="layout.js" library="js"/>
+	</ui:define>
+
+    <ui:define name="content">
+
+		<h:form>
+
+			<div class="crud-demo">
+
+				<p:toolbar styleClass="mt-3">
+
+					<p:toolbarGroup>
+
+						<div class="flex flex-row justify-content-center align-items-end">
+							<div class="mr-2">
+								<p:outputLabel for="@next" value="Data do Movimento" styleClass="block"/>
+								<p:datePicker id="dataMovimento" value="#{uploadView.dataSelecionada}" locale="pt">
+									<p:ajax event="dateSelect" listener="#{uploadView.onDateSelect}"/>
+								</p:datePicker>
+							</div>
+
+							<p:commandButton value="Apagar" actionListener="#{uploadView.apagarMovimento}" update="@root:@id(messages)">
+								<p:confirm header="Confirmação"
+								message="Certeza que deseja prosseguir?"
+								icon="pi pi-exclamation-triangle" />
+							</p:commandButton>
+						</div>
+
+					</p:toolbarGroup>
+
+					<p:toolbarGroup align="right">
+
+						<p:fileUpload mode="simple" multiple="false" chooseIcon="pi pi-upload" skinSimple="true"
+							allowTypes="/(\.|\/)(xlsx)$/" auto="true" label="Importar"
+							listener="#{uploadView.fileUpload}" update="dt-entregas @root:@id(messages)"/>
+
+						<p:commandButton value="Exportar" icon="pi pi-download" styleClass="ui-button-help" ajax="false">
+							<p:dataExporter type="pdf" target="dt-entregas" fileName="entregas" />
+						</p:commandButton>
+
+					</p:toolbarGroup>
+
+				</p:toolbar>
+
+				<p:dataTable id="dt-entregas" widgetVar="dtEntregas" var="entrega" value="#{uploadView.entregas}"
+								reflow="true" styleClass="my-3" rowKey="#{entrega.id}"
+								stripedRows="true" rows="10" paginator="true" paginatorPosition="bottom">
+
+					<f:facet name="header">
+						<div class="products-table-header">
+							<span style="font-weight: bold">Entregas</span>
+							<span class="filter-container ui-input-icon-left"> <i class="pi pi-search"></i>
+								<p:inputText id="globalFilter" onkeyup="PF('dtEntregas').filter()" placeholder="Buscar"/>
+							</span>
+						</div>
+					</f:facet>
+
+					<p:column headerText="ID" sortBy="#{entrega.id}" filterBy="#{entrega.id}">
+						<h:outputLabel value="#{entrega.id}" />
+					</p:column>
+
+					<p:column headerText="Nº Pedido" sortBy="#{entrega.pedido}" filterBy="#{entrega.pedido}">
+						<h:outputLabel value="#{entrega.pedido}" />
+					</p:column>
+
+					<p:column headerText="Data" sortBy="#{entrega.dataFormatada}" filterBy="#{entrega.dataFormatada}">
+						<h:outputLabel value="#{entrega.dataFormatada}" />
+					</p:column>
+
+					<p:column headerText="Entregador" sortBy="#{entrega.entregador.nome}" filterBy="#{entrega.entregador.nome}">
+						<h:outputLabel value="#{entrega.entregador.nome}" />
+					</p:column>
+
+					<p:column headerText="Valor" sortBy="#{entrega.valor}" filterBy="#{entrega.valor}">
+						<h:outputLabel value="#{entrega.valor}">
+							<f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+						</h:outputLabel>
+					</p:column>
+
+				</p:dataTable>
+
+			</div>
+
+		</h:form>
+
+		<h:form id="dialogs">
+
+            <p:confirmDialog global="true" showEffect="fade" width="300">
+                <p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"
+                                    icon="pi pi-times" />
+            </p:confirmDialog>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>

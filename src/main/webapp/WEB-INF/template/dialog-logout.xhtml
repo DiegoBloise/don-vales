@@ -1,0 +1,22 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui" >
+
+    <h:form>
+
+        <p:confirmDialog widgetVar="logoutDialog" showEffect="fade" width="300" closable="false" closeOnEscape="false"
+                        message="Tem certeza que deseja encerrar a sessão?" header="Confirmação" severity="warn">
+
+            <p:commandButton value="Sim" icon="pi pi-check" actionListener="#{userSession.doLogout}"
+                            process="@this" oncomplete="PF('logoutDialog').hide()" />
+
+            <p:commandButton value="Não" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                onclick="PF('logoutDialog').hide()" />
+
+        </p:confirmDialog>
+
+    </h:form>
+
+</ui:composition>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      lang="en">
+
+    <h:head>
+        <f:facet name="first">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+        </f:facet>
+
+        <title><ui:insert name="title">Don</ui:insert></title>
+
+        <h:outputScript name="js/layout.js" library="siberia-layout" />
+        <h:outputScript name="js/prism.js" library="siberia-layout"/>
+        <h:outputScript name="js/sections.js" library="demo" />
+        <h:outputScript name="js/session.js"/>
+
+        <ui:insert name="head"/>
+
+        <style>
+            .ui-growl {
+                z-index: 10000;
+            }
+        </style>
+    </h:head>
+
+    <!-- <h:body styleClass="outlined">
+    <div class="layout-wrapper layout-overlay layout-yana -->
+    <h:body styleClass="outlined">
+        <div class="layout-wrapper layout-overlay layout-arctic">
+
+            <h:form>
+                <p:growl id="messages" showDetail="true">
+                    <p:autoUpdate />
+                </p:growl>
+            </h:form>
+
+            <!-- <div class="layout-main p-0" style="background-image: linear-gradient(#579dff, white);"> -->
+            <div class="layout-main p-0" style="background-image: linear-gradient(hsl(206, 69%, 42%), white);">
+
+                <div class="layout-content p-5">
+                    <p:card id="app">
+                        <ui:include src="menu.xhtml"/>
+
+                        <div class="fadein animation-duration-200">
+                            <ui:insert name="content"/>
+                        </div>
+                    </p:card>
+                </div>
+
+                <ui:include src="dialog-logout.xhtml"/>
+
+                <div class="layout-mask"></div>
+            </div>
+
+            <p:ajaxStatus style="width:32px;height:32px;position:fixed;right:7px;bottom:7px">
+                <f:facet name="start">
+                    <i class="pi pi-spin pi-spinner layout-ajax-loader-icon" aria-hidden="true"/>
+                </f:facet>
+
+                <f:facet name="complete">
+                    <h:outputText value=""/>
+                </f:facet>
+            </p:ajaxStatus>
+        </div>
+
+
+        <h:outputStylesheet name="css/primeicons.css" library="siberia-layout"/>
+        <h:outputStylesheet name="css/primeflex.min.css" library="siberia-layout"/>
+        <h:outputStylesheet name="css/demo.css" library="demo"/>
+        <!-- <h:outputStylesheet name="css/layout-#{guestPreferences.layout}.css" library="siberia-layout" /> -->
+        <h:outputStylesheet name="css/layout-arctic.css" library="siberia-layout" />
+
+    </h:body>
+
+</html>

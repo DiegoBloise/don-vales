@@ -1,0 +1,243 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/template/template.xhtml">
+
+	<ui:define name="head">
+        <h:outputScript name="layout.js" library="js"/>
+	</ui:define>
+
+    <ui:define name="content">
+
+        <style>
+            .ui-filter-column .ui-column-customfilter .custom-filter .ui-inputfield {
+                width: 12rem;
+            }
+        </style>
+
+        <h:form>
+
+            <div class="crud-demo">
+
+                <p:toolbar styleClass="mt-3">
+
+                    <p:toolbarGroup>
+
+                        <p:commandButton value="Lançar Vale" icon="pi pi-plus" actionListener="#{valeView.adicionarVale(colaborador)}"
+                                        update="@root:@id(manage-vale-content)" oncomplete="PF('valeDialog').show()"
+                                        process="@this" styleClass="ui-button-success" style="margin-right: .5rem">
+                                <p:resetInput target="@root:@id(manage-vale-content)" />
+                        </p:commandButton>
+
+                        <p:commandButton disabled="#{not userSession.usuario.isAdmin()}" rendered="#{userSession.usuario.isAdmin()}" value="Lançar Saldo" icon="pi pi-plus" actionListener="#{valeView.adicionarSaldo(colaborador)}"
+                                        update="@root:@id(manage-vale-content)" oncomplete="PF('valeDialog').show()"
+                                        process="@this" styleClass="ui-button-warning" style="margin-right: .5rem">
+                                <p:resetInput target="@root:@id(manage-vale-content)" />
+                        </p:commandButton>
+
+                    </p:toolbarGroup>
+
+                    <!-- <p:toolbarGroup align="right">
+
+                        <p:fileUpload mode="simple" skinSimple="true" label="Importar" chooseIcon="pi pi-download" />
+
+                        <p:commandButton value="Exportar" icon="pi pi-upload" styleClass="ui-button-help" ajax="false">
+                            <p:dataExporter type="pdf" target="dt-colaboradores" fileName="colaboradores" />
+                        </p:commandButton>
+
+                    </p:toolbarGroup> -->
+
+                </p:toolbar>
+
+                <p:dataTable id="dt-vales" var="vale" value="#{valeView.vales}" widgetVar="valesDoDia"
+                        filteredValue="#{valeView.filteredVales}" filterBy="#{valeView.filterBy}" styleClass="mt-3"
+                        rows="10" paginator="true" paginatorPosition="bottom" stripedRows="true">
+
+                    <f:facet name="header">
+						<div class="products-table-header">
+							<span style="font-weight: bold">Vales</span>
+							<span class="filter-container ui-input-icon-left"> <i class="pi pi-search"></i>
+								<p:inputText id="globalFilter" onkeyup="PF('valesDoDia').filter()" placeholder="Buscar"/>
+							</span>
+						</div>
+					</f:facet>
+
+
+                    <p:column field="data" headerText="Data do Vale" filterMatchMode="between">
+                        <f:facet name="filter">
+                            <p:datePicker selectionMode="range" onchange="PF('valesDoDia').filter()" styleClass="custom-filter"/>
+                        </f:facet>
+
+                        <h:outputText style="vertical-align: middle; margin-left: .5rem" styleClass="data-format block" value="#{vale.dataSemanaFormatada.substring(0, 10)}"/>
+                        <h:outputText style="vertical-align: middle; margin-left: .5rem" styleClass="data-format block" value="#{vale.dataSemanaFormatada.substring(10)}"/>
+                    </p:column>
+
+                    <p:column field="colaborador" headerText="Colaborador" filterMatchMode="exact"
+                        sortBy="#{vale.colaborador.nome}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu id="select-colaborador-bugado" style="min-width: auto !important;" onchange="PF('valesDoDia').filter()" styleClass="custom-filter">
+                                <f:selectItem itemLabel="Todos" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{valeView.colaboradores}" var="colaborador" itemLabel="#{colaborador.nome}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+
+                        <!-- <p:graphicImage name="images/avatar/#{customer.representative.image}" library="demo" width="32"
+                                        style="vertical-align: middle" /> -->
+                        <h:outputText style="vertical-align: middle; margin-left: .5rem" value="#{vale.colaborador.nome}" />
+                    </p:column>
+
+                    <p:column headerText="Valor" sortBy="#{vale.valor}" >
+                        <!-- <f:facet name="filter">
+                            <p:inputText onchange="PF('valesDoDia').filter()" styleClass="custom-filter moneyInput"
+                                oninput="formatMoneyInput(this)" converter="dinheiroConverter">
+                                <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+                            </p:inputText>
+                        </f:facet> -->
+
+                        <h:outputText style="vertical-align: middle; margin-left: .5rem" value="#{vale.valor}">
+                            <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:divider/>
+
+                    <p:column field="colaborador.tipo" headerText="Tipo de Colaborador" filterMatchMode="exact">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('valesDoDia').filter()" styleClass="custom-filter">
+                                <f:selectItem itemLabel="Todos" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{valeView.tiposColaboradores}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+
+                        <h:outputText style="vertical-align: middle; margin-left: .5rem" value="#{vale.colaborador.tipo.descricao}" />
+                    </p:column>
+
+                    <p:column field="tipo" headerText="Tipo" filterMatchMode="exact">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('valesDoDia').filter()" styleClass="custom-filter">
+                                <f:selectItem itemLabel="Todos" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{valeView.tiposVales}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+
+                        <h:outputText style="vertical-align: middle; margin-left: .5rem" value="#{vale.tipo.descricao}" />
+                        <!-- <span class="customer-badge status-#{customer.status.name().toLowerCase()}">#{customer.status.toString()}</span> -->
+                    </p:column>
+
+                    <p:column exportable="false">
+
+                        <p:tooltip for="imprimir-vale" value="Imprimir Vale" position="top"/>
+                        <p:commandButton id="imprimir-vale" icon="pi pi-print" oncomplete="PF('imprimeValeDialog').show()"
+                                    styleClass="edit-button rounded-button ui-button-help" process="@this">
+                            <f:setPropertyActionListener value="#{vale}" target="#{valeView.valeSelecionado}"/>
+                        </p:commandButton>
+
+                        <p:commandButton rendered="#{userSession.usuario.isAdmin()}" icon="pi pi-pencil" update="@root:@id(manage-vale-content)"
+                                            oncomplete="PF('valeDialog').show()"
+                                            styleClass="edit-button rounded-button ui-button-warning" process="@this">
+                            <f:setPropertyActionListener value="#{vale}" target="#{valeView.valeSelecionado}" />
+                            <f:setPropertyActionListener value="#{vale.colaborador}" target="#{valeView.colaboradorSelecionado}" />
+                            <p:resetInput target="@root:@id(manage-vale-content)" />
+                        </p:commandButton>
+
+                        <p:commandButton rendered="#{userSession.usuario.isAdmin()}" class="ui-button-danger rounded-button" icon="pi pi-trash"
+                                            process="@this"
+                                            oncomplete="PF('deletarValeDialog').show()">
+                            <f:setPropertyActionListener value="#{vale}" target="#{valeView.valeSelecionado}" />
+                        </p:commandButton>
+
+                    </p:column>
+
+                </p:dataTable>
+
+            </div>
+
+        </h:form>
+
+        <h:form>
+
+            <p:dialog header="Lançamento de Vale" widgetVar="valeDialog" showEffect="fade" modal="true" blockScroll="false" id="valeDialog"
+                closable="false" closeOnEscape="false" fitViewport="true" resizable="false" responsive="true">
+
+                <p:outputPanel id="manage-vale-content" styleClass="ui-fluid">
+
+                    <p:outputPanel rendered="#{not empty valeView.valeSelecionado}">
+
+                        <h:panelGrid columns="2">
+                            <p:outputLabel for="@next" value="Colaborador: "/>
+                            <p:autoComplete disabled="#{valeView.valeSelecionado.id != null}" value="#{valeView.colaboradorSelecionado}"
+                                            required="true" completeMethod="#{valeView.completeColaborador}" dropdown="true"
+                                            var="colaborador" itemLabel="#{colaborador.nome}" itemValue="#{colaborador}"
+                                            converter="#{colaboradorConverter}" forceSelection="true" scrollHeight="250"/>
+
+                            <p:outputLabel for="@next" value="Data do Vale:"/>
+                            <p:datePicker disabled="#{not userSession.usuario.isAdmin()}" showOnFocus="false" showIcon="true" value="#{valeView.valeSelecionado.data}"
+                                pattern="dd/MM/yyyy" mask="true" required="true"/>
+
+                            <p:outputLabel for="@next" value="Valor:"/>
+                            <p:inputText required="true" class="moneyInput"
+                                value="#{valeView.valeSelecionado.valor}"
+                                styleClass="mt-1 w-full" size="12"
+                                oninput="formatMoneyInput(this)" converter="dinheiroConverter">
+                                <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" pattern="¤ ###,###,##0.00; ¤ -###,###,##0.00"/>
+                            </p:inputText>
+
+                            <p:outputLabel rendered="#{userSession.usuario.isAdmin()}" for="@next" value="Tipo de Vale:" />
+                            <p:selectOneMenu rendered="#{userSession.usuario.isAdmin()}" id="valeTipo" value="#{valeView.valeSelecionado.tipo}" required="true">
+                                <f:selectItem itemLabel="Selecione:" itemValue="" />
+                                <f:selectItems value="#{valeView.tiposVales}" />
+                            </p:selectOneMenu>
+
+                            <!-- <p:outputLabel for="@next" value="Imprimir Vale:" />
+                            <p:toggleSwitch value="#{userFiles.autoPrintVale}"/> -->
+
+                        </h:panelGrid>
+
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton rendered="#{userFiles.autoPrintVale eq false}" value="Salvar" icon="pi pi-check" actionListener="#{valeView.salvarVale}"
+                                    update="manage-vale-content @root:@id(dt-vales)" process="manage-vale-content @this"/>
+
+                    <p:commandButton rendered="#{userFiles.autoPrintVale eq true}" value="Salvar" icon="pi pi-check" actionListener="#{valeView.salvarVale}"
+                                    update="manage-vale-content @root:@id(dt-vales)" process="manage-vale-content @this">
+                        <p:fileDownload value="#{fileDownloadView.file}"/>
+                    </p:commandButton>
+
+                    <p:commandButton value="Cancelar" icon="pi pi-times" onclick="PF('valeDialog').hide()"
+                        class="ui-button-secondary" actionListener="#{valeView.cancelarVale}" process="@this"/>
+                </f:facet>
+
+            </p:dialog>
+
+            <p:confirmDialog widgetVar="imprimeValeDialog" showEffect="fade" width="300"
+				message="Imprimir Vale?" header="Confirmação" severity="warn" closable="false" closeOnEscape="false">
+				<p:commandButton value="Sim" icon="pi pi-check"	process="@this" actionListener="#{valeView.prepararValeImpressao}"
+								update="@root:@id(dt-vales)"
+								oncomplete="PF('imprimeValeDialog').hide()">
+					<p:fileDownload value="#{fileDownloadView.file}"/>
+				</p:commandButton>
+
+				<p:commandButton value="Não" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+								onclick="PF('imprimeValeDialog').hide()" />
+			</p:confirmDialog>
+
+            <p:confirmDialog widgetVar="deletarValeDialog" showEffect="fade" width="300"
+                                message="Remover o vale?" header="Confirmar" severity="warn" closable="false" closeOnEscape="false">
+                <p:commandButton value="Sim" icon="pi pi-check" actionListener="#{valeView.deletarValeSelecionado}"
+                                    process="@this" oncomplete="PF('deletarValeDialog').hide()" />
+                <p:commandButton value="Não" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                                    onclick="PF('deletarValeDialog').hide()" />
+            </p:confirmDialog>
+
+        </h:form>
+
+        <script src="#{request.contextPath}/resources/js/util.js"></script>
+
+	</ui:define>
+
+</ui:composition>

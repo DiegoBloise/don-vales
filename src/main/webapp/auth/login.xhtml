@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <f:facet name="first">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+            <meta name="apple-mobile-web-app-capable" content="yes"/>
+        </f:facet>
+
+        <title>Zeus - Login</title>
+
+        <h:outputScript name="js/layout.js" library="siberia-layout"/>
+        <h:outputScript name="js/session.js"/>
+    </h:head>
+
+    <h:body styleClass="login-body" >
+        <div class="login-wrapper">
+
+            <a href="#" class="logo-wrapper">
+                <p:graphicImage name="images/zeus-logo-white.png" styleClass="logo" library="siberia-layout"/>
+            </a>
+
+            <h:form id="form" class="form">
+
+                <div class="login-wrapper">
+
+                    <div class="login-content">
+
+                        <div class="content-text">
+
+                            <h2 class="mt-6 mb-1">ZEUS NETWORK</h2>
+                            <span class="mb-0">Olá! Faça o login para continuar.</span>
+
+                            <div class="ui-fluid">
+                                <div class="field mb-5 mt-7">
+                                    <p:outputLabel for="@next" value="Nome de Usuário" styleClass="ml-4"/>
+                                    <span class="ui-input-icon-left">
+                                        <i class="pi pi-user"/>
+                                        <p:inputText requiredMessage="Informe seu nome de usuário." required="true" value="#{loginView.username}" id="username"/>
+                                    </span>
+                                </div>
+
+                                <div class="field mb-5">
+                                    <p:outputLabel for="@next" value="Senha" styleClass="ml-4"/>
+                                    <span class="ui-input-icon-left">
+                                        <i class="pi pi-lock z-5"/>
+                                        <p:password styleClass="ui-inputtext pl-5" toggleMask="true" requiredMessage="Informe sua senha." required="true" value="#{loginView.password}" id="password"/>
+                                    </span>
+                                </div>
+
+                                <p:messages id="messages" showDetail="true" closable="true" styleClass="mb-5">
+                                    <p:autoUpdate />
+                                </p:messages>
+
+                                <div class="flex justify-content-between">
+                                    <p:selectBooleanCheckbox id="rememberme" itemLabel="Lembrar"/>
+                                    <a href="#" class="m-0">Esqueci minha senha</a>
+                                </div>
+
+                            </div>
+
+                            <p:commandButton styleClass="mt-6 none" actionListener="#{loginView.doLogin}" value="Entrar" icon="pi pi-sign-in" update="@form"/>
+
+                        </div>
+
+                        <p:graphicImage name="images/exceptions/asset-login.png" library="siberia-layout"/>
+
+                    </div>
+
+                </div>
+
+            </h:form>
+
+        </div>
+
+        <h:outputStylesheet name="css/layout-arctic.css" library="siberia-layout"/>
+        <h:outputStylesheet name="css/primeflex.min.css" library="siberia-layout"/>
+
+        <script>
+            window.onload = function() {
+                if (!window.location.hash) {
+                    window.location = window.location + '#zeus';
+                    window.location.reload();
+                }
+            }
+        </script>
+
+    </h:body>
+
+</html>
